@@ -5,8 +5,7 @@ import { useNavigate } from 'react-router-dom';
 interface HeaderProps {
   title: string;
 }
-
-export default function Header({ title }: HeaderProps) {
+const Header = ({ title }: HeaderProps) => {
   const navigate = useNavigate();
 
   const handleGoHome = () => {
@@ -14,7 +13,7 @@ export default function Header({ title }: HeaderProps) {
   };
 
   return (
-    <AppBar position="static">
+    <AppBar position="fixed" sx={{ width: '100%' }}>
       <Toolbar>
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
           {title}
@@ -25,4 +24,6 @@ export default function Header({ title }: HeaderProps) {
       </Toolbar>
     </AppBar>
   );
-}
+};
+
+export default Header;

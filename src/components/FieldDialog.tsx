@@ -2,10 +2,10 @@
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     FormControl, InputLabel, Select, MenuItem,
-    TextField, Checkbox, FormControlLabel, Button, Box, Chip, Stack
+    TextField, Checkbox, FormControlLabel, Button, Box
 } from '@mui/material';
 import { FieldType, FormType } from '../types/form';
-import { saveForms, getForms } from '../utils/storage';  
+import { saveForms, getForms } from '../utils/storage';
 
 interface FieldDialogProps {
     open: boolean;
@@ -16,28 +16,19 @@ interface FieldDialogProps {
     onAdd: () => void;
 }
 
-export default function FieldDialog({
+const FieldDialog = ({
     open, fieldTypes, currentField, onClose, onChange, onAdd
-}: FieldDialogProps) {
+}: FieldDialogProps) => {
 
-    const handleChipDelete = (chipToDelete: string) => {
-        const newOptions = (currentField.options || []).filter(option => option !== chipToDelete);
-        onChange({ ...currentField, options: newOptions });
+    const handleOptionChange = (index: number, value: string) => {
+        const updatedOptions = [...(currentField.options || [])];
+        updatedOptions[index] = value;
+        onChange({ ...currentField, options: updatedOptions });
     };
 
-    const handleChipAdd = (event: React.KeyboardEvent<HTMLInputElement>) => {
-        if (event.key === 'Enter' && event.currentTarget.value.trim()) {
-            const newOption = event.currentTarget.value.trim();
-            const newOptions = [...(currentField.options || []), newOption];
-            onChange({ ...currentField, options: newOptions });
-            event.currentTarget.value = '';  
-        }
-    };
-
-    const handleAddExtraField = () => {
-        const newExtraField = (currentField.extraFields || []);
-        newExtraField.push(''); 
-        onChange({ ...currentField, extraFields: newExtraField });
+    const handleAddOption = () => {
+        const updatedOptions = [...(currentField.options || []), ''];
+        onChange({ ...currentField, options: updatedOptions });
     };
 
     const handleExtraFieldChange = (index: number, value: string) => {
@@ -46,119 +37,102 @@ export default function FieldDialog({
         onChange({ ...currentField, extraFields: newExtraFields });
     };
 
+    const handleSave = () => {
+        const forms = getForms();  
+        const updatedForms = forms.map(form => {
+            if (form.id === currentField.formId) {
+                return {
+                    ...form,
+                    fields: form.fields.map(field => {
+                        if (field.id === currentField.id) {
+                            return {
+                                ...field,
+                                ...currentField,
+                                options: currentField.options || [],
+                                extraFields: currentField.extraFields || []
+                            };
+                        }
+                        return field;
+                    }),
+                };
+            }
+            return form;
+        });
+
+        saveForms(updatedForms);  
+        onAdd();  
+    };
+
     const renderFieldConstraints = () => {
         if (!currentField.type) return null;
 
-        switch (currentField.type.toLowerCase()) {
-            case 'text':
-            case 'password':
-                return (
-                    <Box sx={{ display: 'flex', gap: 2, my: 2 }}>
+        
+        const supportsLengthConstraints = ['text', 'password', 'number'].includes(currentField.type.toLowerCase());
+
+        return (
+            <Box sx={{ my: 2 }}>
+             
+                {supportsLengthConstraints && (
+                    <>
                         <TextField
                             fullWidth
                             label="Min Length"
                             type="number"
                             value={currentField.minLength || ''}
-                            onChange={(e) => onChange({
-                                ...currentField,
-                                minLength: Number(e.target.value) || undefined
-                            })}
+                            onChange={(e) => onChange({ ...currentField, minLength: e.target.value ? parseInt(e.target.value) : undefined })}
+                            sx={{ mb: 2 }}
+                           
                         />
                         <TextField
                             fullWidth
                             label="Max Length"
                             type="number"
                             value={currentField.maxLength || ''}
-                            onChange={(e) => onChange({
-                                ...currentField,
-                                maxLength: Number(e.target.value) || undefined
-                            })}
+                            onChange={(e) => onChange({ ...currentField, maxLength: e.target.value ? parseInt(e.target.value) : undefined })}
+                            sx={{ mb: 2 }}
+                           
                         />
-                    </Box>
-                );
+                    </>
+                )}
 
-            case 'number':
-                return (
-                    <Box sx={{ display: 'flex', gap: 2, my: 2 }}>
-                        <TextField
-                            fullWidth
-                            label="Min Value"
-                            type="number"
-                            value={currentField.min || ''}
-                            onChange={(e) => onChange({
-                                ...currentField,
-                                min: Number(e.target.value) || undefined
-                            })}
-                        />
-                        <TextField
-                            fullWidth
-                            label="Max Value"
-                            type="number"
-                            value={currentField.max || ''}
-                            onChange={(e) => onChange({
-                                ...currentField,
-                                max: Number(e.target.value) || undefined
-                            })}
-                        />
-                    </Box>
-                );
-
-            case 'checkbox':
-            case 'radio':
-            case 'select':
-                return (
-                    <Box sx={{ my: 2 }}>
-                        <TextField
-                            fullWidth
-                            label="Options"
-                            sx={{ mb: 1 }}
-                            placeholder="Add option and press Enter"
-                            onKeyDown={handleChipAdd}
-                        />
-                        <Stack direction="row" flexWrap="wrap" spacing={1}>
-                            {(currentField.options || []).map((option, index) => (
-                                <Chip
-                                    key={index}
-                                    label={option}
-                                    onDelete={() => handleChipDelete(option)}
+                
+                {['radio', 'checkbox', 'select'].includes(currentField.type?.toLowerCase()) && (
+                    <>
+                        {(currentField.options || []).map((option, index) => (
+                            <Box key={index} sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                                <TextField
+                                    fullWidth
+                                    value={option}
+                                    onChange={(e) => handleOptionChange(index, e.target.value)}
+                                    label={`Option ${index + 1}`}
                                 />
-                            ))}
-                        </Stack>
-
-                        <Button variant="outlined" onClick={handleAddExtraField} sx={{ mt: 2 }}>
-                            Add Extra Field
-                        </Button>
-
-                        {(currentField.extraFields || []).map((extraField, index) => (
-                            <TextField
-                                key={index}
-                                fullWidth
-                                label={`Extra Option ${index + 1}`}
-                                value={extraField}
-                                onChange={(e) => handleExtraFieldChange(index, e.target.value)}
-                                sx={{ my: 2 }}
-                            />
+                            </Box>
                         ))}
-                    </Box>
-                );
+                        <Box>
+                            <Button
+                                variant="outlined"
+                                onClick={handleAddOption}
+                                sx={{ mb: 2 }}
+                            >
+                                Add Option
+                            </Button>
+                        </Box>
+                    </>
+                )}
 
-            default:
-                return null;
-        }
-    };
-
-    const handleSave = () => {
-        // Save the updated form field data to localStorage
-        const forms = getForms();
-        const updatedForms = forms.map(form => {
-            if (form.id === currentField.id) {
-                return { ...form, fields: form.fields.map(field => field.id === currentField.id ? { ...field, ...currentField } : field) };
-            }
-            return form;
-        });
-
-        saveForms(updatedForms);  // Update localStorage with the new data
-        onAdd();  // Call the onAdd callback
+             
+                {(currentField.extraFields || []).map((extraField, index) => (
+                    <TextField
+                        key={index}
+                        fullWidth
+                        label={`Extra Option ${index + 1}`}
+                        value={extraField}
+                        onChange={(e) => handleExtraFieldChange(index, e.target.value)}
+                        sx={{ my: 2 }}
+                    />
+                ))}
+            </Box>
+        );
     };
 
     return (
@@ -175,12 +149,10 @@ export default function FieldDialog({
                             onChange({
                                 ...currentField,
                                 type: newType,
-                                min: undefined,
-                                max: undefined,
-                                minLength: undefined,
+                                minLength: undefined,  
                                 maxLength: undefined,
-                                options: undefined,
-                                extraFields: []  // Reset extra fields when type changes
+                                options: [],
+                                extraFields: []
                             });
                         }}
                     >
@@ -209,7 +181,7 @@ export default function FieldDialog({
                             onChange={(e) => onChange({ ...currentField, required: e.target.checked })}
                         />
                     }
-                    label="Required Field"
+                    label="Required"
                     sx={{ mt: 1 }}
                 />
             </DialogContent>
@@ -219,4 +191,6 @@ export default function FieldDialog({
             </DialogActions>
         </Dialog>
     );
-}
+};
+
+export default  FieldDialog;

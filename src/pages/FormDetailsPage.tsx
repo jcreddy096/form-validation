@@ -1,19 +1,14 @@
 
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Box, Button, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import { Box, Button, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton } from '@mui/material';
 import { getForms } from '../utils/storage';
+import {  FormType} from '../types/form';
+import EditIcon from '@mui/icons-material/Edit';
 
-interface FormConfig {
-  id: string;
-  title: string;
-  path: string;
-  createdAt: string;
-  fields: any[];
-}
 
-export default function FormDetailsPage() {
-  const [forms, setForms] = useState<FormConfig[]>([]);
+const FormDetailsPage = () => {
+  const [forms, setForms] = useState<FormType[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,7 +32,28 @@ export default function FormDetailsPage() {
   }
 
   return (
-    <Box sx={{ p: 4, maxWidth: 1200, margin: '0 auto' }}>
+    
+        <Box 
+        sx={{ 
+          height: '100vh',
+          width: '100vw', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          backgroundColor: '#f5f5f5' 
+        }}
+      >
+        <Paper 
+          elevation={6}
+          sx={{ 
+            p: 6, 
+            maxWidth: 800, 
+            width: '100%', 
+            borderRadius: 4, 
+            boxShadow: 3,
+            backgroundColor: '#ffffff'
+          }}
+        >
       <Typography variant="h4" gutterBottom sx={{ mb: 4 }}>
         Saved Forms
       </Typography>
@@ -46,11 +62,11 @@ export default function FormDetailsPage() {
 
       {forms.length === 0 ? (
         <Typography variant="body1" color="text.secondary">
-          No forms found. Create a new form to get started.
+          No forms found.
         </Typography>
       ) : (
         <TableContainer component={Paper}>
-          <Table sx={{ minWidth: 650 }}>
+          <Table sx={{ minWidth: 550 }}>
             <TableHead>
               <TableRow>
                 <TableCell>S.No</TableCell>
@@ -69,21 +85,21 @@ export default function FormDetailsPage() {
                   <Button
   component={Link}
   to={`/${form.path}`}  
-  variant="outlined"
   size="small"
+  sx={{ textTransform: 'none' }}
 >
   {form.path}
 </Button>
                   </TableCell>
                   <TableCell>
-                    <Button
-                      component={Link}
-                      to={`/edit/${form.id}`}
-                      variant="outlined"
-                      size="small"
-                    >
-                      Edit
-                    </Button>
+                  <IconButton
+                        component={Link}
+                        to={`/edit/${form.id}`}
+                        color="primary"
+                        size="small"
+                      >
+                        <EditIcon />
+                      </IconButton>
                   </TableCell>
                 </TableRow>
               ))}
@@ -91,6 +107,9 @@ export default function FormDetailsPage() {
           </Table>
         </TableContainer>
       )}
+      </Paper>
     </Box>
   );
-}
+};
+
+export default FormDetailsPage;

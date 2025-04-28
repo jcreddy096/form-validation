@@ -1,6 +1,6 @@
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import FormBuilder from "./pages/FormPage";
+import FormPage from "./pages/FormPage";
 import EditFormPage from "./pages/EditFormPage";
 import FormDetailsPage from './pages/FormDetailsPage';
 import PathPage from "./pages/PathPage";
@@ -12,7 +12,7 @@ function App() {
     <Header title="Form Builder"/>
       <Routes>
         
-        <Route path="/" element={<FormBuilder />} />
+        <Route path="/" element={<FormPage />} />
         <Route path="/form-details" element={<FormDetailsPage />} />
     
         <Route path="/edit/:id" element={<EditFormPage />} /> 

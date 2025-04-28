@@ -4,8 +4,7 @@ import { FormType } from '../types/form';
 interface FieldCardProps {
   field: FormType;
 }
-
-export default function FieldCard({ field }: FieldCardProps) {
+const FieldCard = ({ field }: FieldCardProps) => {
   return (
     <Card variant="outlined">
       <CardContent>
@@ -32,4 +31,6 @@ export default function FieldCard({ field }: FieldCardProps) {
       </CardContent>
     </Card>
   );
-}
+};
+
+export default  FieldCard;

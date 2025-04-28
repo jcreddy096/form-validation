@@ -2,13 +2,20 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Box, Button, Checkbox, FormControlLabel, TextField, Typography } from '@mui/material';
+import { Box, Button, Checkbox, FormControlLabel, Paper, TextField, Typography } from '@mui/material';
 import { getForms, saveForms } from '../utils/storage'; 
-import { FormConfig } from '../types/form';
+import { FormType } from '../types/form';
 
-export default function EditFormPage() {
+interface FormField {
+  id: string;
+  label: string;
+  type: string;
+  required: boolean;
+}
+
+const EditFormPage = () => {
   const { id } = useParams<{ id: string }>(); 
-  const [form, setForm] = useState<FormConfig | null>(null);
+  const [form, setForm] = useState<FormType | null>(null);
   const [loading, setLoading] = useState(true); 
 
   useEffect(() => {
@@ -41,7 +48,30 @@ export default function EditFormPage() {
   };
 
   return (
-    <Box sx={{ p: 4, maxWidth: 800, margin: '0 auto' }}>
+    <Box 
+    sx={{ 
+      height: '100vh',
+      width: '100vw', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      backgroundColor: '#f5f5f5',
+      py: 100, 
+      overflowY: 'auto'  
+    }}
+  >
+    <Paper 
+      elevation={6}
+      sx={{ 
+        p: 6,
+        my:4, 
+        maxWidth: 600, 
+        width: '100%', 
+        borderRadius: 4, 
+        boxShadow: 3,
+        backgroundColor: '#ffffff'
+      }}
+    >
       <Typography variant="h4" gutterBottom>Edit Form</Typography>
 
       <TextField
@@ -57,7 +87,7 @@ export default function EditFormPage() {
         value={form.path}
         fullWidth
         margin="normal"
-        InputProps={{ readOnly: true }}
+      
       />
 
       <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>Fields</Typography>
@@ -77,7 +107,7 @@ export default function EditFormPage() {
             value={field.type}
             fullWidth
             margin="normal"
-            InputProps={{ readOnly: true }}
+           
           />
 
           <FormControlLabel
@@ -93,8 +123,11 @@ export default function EditFormPage() {
       ))}
 
       <Button variant="contained" onClick={handleSave}>
-        Save Changes
+        update
       </Button>
+      </Paper>
     </Box>
   );
-}
+};
+
+export default  EditFormPage;

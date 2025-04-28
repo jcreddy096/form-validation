@@ -1,15 +1,14 @@
 
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Box, Button, TextField, Typography } from '@mui/material';
+import { Box, Button, Paper, TextField, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom'; 
 
-import FieldCard from '../components/FieldCard';
 import FieldDialog from '../components/FieldDialog';
 import SortableFields from '../components/SortableField';
-import { FormType } from '../types/form';
+import { FieldType, FormType } from '../types/form';
 
-export default function FormBuilder() {
+const FormPage = () => {
   const [formTitle, setFormTitle] = useState('');
   const [formPath, setFormPath] = useState('');
   const [fields, setFields] = useState<FormType[]>([]);
@@ -17,11 +16,13 @@ export default function FormBuilder() {
   const [currentField, setCurrentField] = useState<Partial<FormType>>({ type: 'text', required: false });
   const [error, setError] = useState('');
   const navigate = useNavigate(); 
-
-  const FormTypes = [
-    'Text', 'Number', 'Email', 'Password',
-    'Date', 'Switch', 'Chips', 'Checkbox', 'Radio', 'Select'
+ 
+  const FormTypes: FieldType[] = [
+    'text', 'number', 'email', 'password',
+    'date', 'switch', 'chips', 'checkbox', 'radio', 'select'
   ];
+  
+  
 
   const handleAddField = () => {
     if (!currentField.type || !currentField.label) return;
@@ -33,6 +34,11 @@ export default function FormBuilder() {
       options: currentField.options,
       minLength: currentField.minLength,
       maxLength: currentField.maxLength,
+      title: '',
+      formId: '',
+      fields: [],
+      path: '',
+      createdAt: ''
     };
     setFields([...fields, newField]);
     setOpenDialog(false);
@@ -45,7 +51,7 @@ export default function FormBuilder() {
       return;
     }
     const existingForms = JSON.parse(localStorage.getItem('forms') || '[]');
-    if (existingForms.some((form: any) => form.path === formPath)) {
+    if (existingForms.some((form: { path: string; }) => form.path === formPath)) {
       setError('Form path must be unique');
       return;
     }
@@ -61,13 +67,36 @@ export default function FormBuilder() {
       alert('Form saved successfully!');
      
       navigate(`/form-details`); 
-    } catch (error) {
+    } catch  {
       setError('Failed to save form');
     }
   };
 
   return (
-    <Box sx={{ p: 4, maxWidth: 800, margin: '0 auto' }}>
+    
+    <Box 
+    sx={{ 
+      height: '100vh',
+      width: '100vw', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      backgroundColor: '#f5f5f5',
+      py: 30, 
+      overflowY: 'auto'  
+    }}
+  >
+    <Paper 
+      elevation={6}
+      sx={{ 
+        p: 6, 
+        maxWidth: 600, 
+        width: '100%', 
+        borderRadius: 4, 
+        boxShadow: 3,
+        backgroundColor: '#ffffff'
+      }}
+    >
       <Typography variant="h4" gutterBottom>Form Builder</Typography>
 
       <TextField
@@ -87,12 +116,12 @@ export default function FormBuilder() {
 
       <Button variant="contained" onClick={() => setOpenDialog(true)}>+ Add Field</Button>
 
-      <Box sx={{ mt: 4 }}>
+      <Box sx={{ mt: 2 }}>
         <SortableFields
           items={fields}
           onDragEnd={(newFields) => setFields(newFields as FormType[])}
           renderItem={(field) => (
-            <FieldCard field={field as FormType} />
+            <Box>{field.label}</Box>
           )}
         />
       </Box>
@@ -116,6 +145,9 @@ export default function FormBuilder() {
         onChange={setCurrentField}
         onAdd={handleAddField}
       />
+      </Paper>
     </Box>
   );
-}
+};
+
+export default  FormPage;
