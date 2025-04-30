@@ -35,7 +35,7 @@ const FormDetailsPage = () => {
     
         <Box 
         sx={{ 
-          height: '100vh',
+          height: '130vh',
           width: '100vw', 
           display: 'flex', 
           alignItems: 'center', 

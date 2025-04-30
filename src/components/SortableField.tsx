@@ -5,13 +5,13 @@ import { SortableContext, useSortable, arrayMove, verticalListSortingStrategy } 
 import { CSS } from "@dnd-kit/utilities";
 import { Box, IconButton } from "@mui/material";
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import { FieldConfigType } from "../types/form";
 
-interface SortableFieldsProps {
-  items: { id: string, label: ReactNode }[];
-  onDragEnd: (items: { id: string, label: ReactNode }[]) => void;
-  renderItem: (item: {
-    label: ReactNode, id: string 
-}) => ReactNode;
+type SortableFieldsProps = {
+  items: FieldConfigType[]; 
+  onDragEnd: (items: FieldConfigType[]) => void;
+  renderItem: (item: FieldConfigType) => ReactNode;
+  disableEdit?: boolean;
 }
 
 const SortableFields=({ items, onDragEnd, renderItem }: SortableFieldsProps) =>{

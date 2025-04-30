@@ -6,18 +6,18 @@ import { useNavigate } from 'react-router-dom';
 
 import FieldDialog from '../components/FieldDialog';
 import SortableFields from '../components/SortableField';
-import { FieldType, FormType } from '../types/form';
+import { FieldType, FieldConfigType } from '../types/form';
 
 const FormPage = () => {
   const [formTitle, setFormTitle] = useState('');
   const [formPath, setFormPath] = useState('');
-  const [fields, setFields] = useState<FormType[]>([]);
+  const [fields, setFields] = useState<FieldConfigType[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
-  const [currentField, setCurrentField] = useState<Partial<FormType>>({ type: 'text', required: false });
+  const [currentField, setCurrentField] = useState<Partial<FieldConfigType>>({ type: 'text', required: false });
   const [error, setError] = useState('');
   const navigate = useNavigate(); 
  
-  const FormTypes: FieldType[] = [
+  const FieldConfigTypes: FieldType[] = [
     'text', 'number', 'email', 'password',
     'date', 'switch', 'chips', 'checkbox', 'radio', 'select'
   ];
@@ -26,7 +26,7 @@ const FormPage = () => {
 
   const handleAddField = () => {
     if (!currentField.type || !currentField.label) return;
-    const newField: FormType = {
+    const newField: FieldConfigType = {
       id: uuidv4(),
       type: currentField.type,
       label: currentField.label,
@@ -34,11 +34,11 @@ const FormPage = () => {
       options: currentField.options,
       minLength: currentField.minLength,
       maxLength: currentField.maxLength,
-      title: '',
       formId: '',
-      fields: [],
-      path: '',
-      createdAt: ''
+      // title: '',
+      // fields: [],
+      // path: '',
+      // createdAt: ''
     };
     setFields([...fields, newField]);
     setOpenDialog(false);
@@ -76,13 +76,13 @@ const FormPage = () => {
     
     <Box 
     sx={{ 
-      height: '100vh',
+      height: '180vh',
       width: '100vw', 
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'center', 
       backgroundColor: '#f5f5f5',
-      py: 30, 
+      py: 3, 
       overflowY: 'auto'  
     }}
   >
@@ -119,7 +119,7 @@ const FormPage = () => {
       <Box sx={{ mt: 2 }}>
         <SortableFields
           items={fields}
-          onDragEnd={(newFields) => setFields(newFields as FormType[])}
+          onDragEnd={(newFields) => setFields(newFields as FieldConfigType[])}
           renderItem={(field) => (
             <Box>{field.label}</Box>
           )}
@@ -138,13 +138,13 @@ const FormPage = () => {
       </Button>
 
       <FieldDialog
-        open={openDialog}
-        fieldTypes={FormTypes}
-        currentField={currentField}
-        onClose={() => setOpenDialog(false)}
-        onChange={setCurrentField}
-        onAdd={handleAddField}
-      />
+          open={openDialog}
+          fieldTypes={FieldConfigTypes}
+          currentField={currentField}
+          onClose={() => setOpenDialog(false)}
+          onChange={setCurrentField}
+          onAdd={handleAddField} 
+          onSave={handleAddField} />
       </Paper>
     </Box>
   );

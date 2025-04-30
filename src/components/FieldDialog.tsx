@@ -4,20 +4,20 @@ import {
     FormControl, InputLabel, Select, MenuItem,
     TextField, Checkbox, FormControlLabel, Button, Box
 } from '@mui/material';
-import { FieldType, FormType } from '../types/form';
-import { saveForms, getForms } from '../utils/storage';
+import { FieldType, FieldConfigType } from '../types/form';
 
-interface FieldDialogProps {
+type FieldDialogProps = {
     open: boolean;
     fieldTypes: FieldType[];
-    currentField: Partial<FormType>;
+    currentField: Partial<FieldConfigType>;
     onClose: () => void;
-    onChange: (field: Partial<FormType>) => void;
+    onChange: (field: Partial<FieldConfigType>) => void;
     onAdd: () => void;
+    onSave: (field: FieldConfigType) => void;
 }
 
 const FieldDialog = ({
-    open, fieldTypes, currentField, onClose, onChange, onAdd
+    open, fieldTypes, currentField, onClose, onChange, onSave
 }: FieldDialogProps) => {
 
     const handleOptionChange = (index: number, value: string) => {
@@ -31,48 +31,25 @@ const FieldDialog = ({
         onChange({ ...currentField, options: updatedOptions });
     };
 
-    const handleExtraFieldChange = (index: number, value: string) => {
-        const newExtraFields = [...(currentField.extraFields || [])];
-        newExtraFields[index] = value;
-        onChange({ ...currentField, extraFields: newExtraFields });
-    };
-
     const handleSave = () => {
-        const forms = getForms();  
-        const updatedForms = forms.map(form => {
-            if (form.id === currentField.formId) {
-                return {
-                    ...form,
-                    fields: form.fields.map(field => {
-                        if (field.id === currentField.id) {
-                            return {
-                                ...field,
-                                ...currentField,
-                                options: currentField.options || [],
-                                extraFields: currentField.extraFields || []
-                            };
-                        }
-                        return field;
-                    }),
-                };
-            }
-            return form;
-        });
+        if (currentField.type && currentField.label) {
+          onSave(currentField as FieldConfigType); 
+        }
+      };
+      
 
-        saveForms(updatedForms);  
-        onAdd();  
-    };
 
-    const renderFieldConstraints = () => {
+
+    const renderField = () => {
         if (!currentField.type) return null;
 
         
-        const supportsLengthConstraints = ['text', 'password', 'number'].includes(currentField.type.toLowerCase());
-
+        const supportsLength = ['text', 'password', 'number'].includes(currentField.type);
+        
         return (
             <Box sx={{ my: 2 }}>
              
-                {supportsLengthConstraints && (
+                {supportsLength && (
                     <>
                         <TextField
                             fullWidth
@@ -96,7 +73,7 @@ const FieldDialog = ({
                 )}
 
                 
-                {['radio', 'checkbox', 'select'].includes(currentField.type?.toLowerCase()) && (
+                {['radio', 'checkbox', 'select'].includes(currentField.type || '') && (
                     <>
                         {(currentField.options || []).map((option, index) => (
                             <Box key={index} sx={{ display: 'flex', gap: 2, mb: 2 }}>
@@ -121,23 +98,14 @@ const FieldDialog = ({
                 )}
 
              
-                {(currentField.extraFields || []).map((extraField, index) => (
-                    <TextField
-                        key={index}
-                        fullWidth
-                        label={`Extra Option ${index + 1}`}
-                        value={extraField}
-                        onChange={(e) => handleExtraFieldChange(index, e.target.value)}
-                        sx={{ my: 2 }}
-                    />
-                ))}
+               
             </Box>
         );
     };
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth>
-            <DialogTitle>Configure Field</DialogTitle>
+            <DialogTitle> Fields</DialogTitle><br />
             <DialogContent sx={{ pt: 2 }}>
                 <FormControl fullWidth sx={{ mb: 2 }}>
                     <InputLabel>Field Type</InputLabel>
@@ -152,12 +120,12 @@ const FieldDialog = ({
                                 minLength: undefined,  
                                 maxLength: undefined,
                                 options: [],
-                                extraFields: []
+                            
                             });
                         }}
                     >
                         {fieldTypes.map((type) => (
-                            <MenuItem key={type} value={type.toLowerCase()}>
+                            <MenuItem key={type} value={type}>
                                 {type.charAt(0).toUpperCase() + type.slice(1)}
                             </MenuItem>
                         ))}
@@ -172,7 +140,7 @@ const FieldDialog = ({
                     sx={{ mb: 2 }}
                 />
 
-                {renderFieldConstraints()}
+                {renderField()}
 
                 <FormControlLabel
                     control={

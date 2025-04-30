@@ -1,133 +1,196 @@
 
-
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Box, Button, Checkbox, FormControlLabel, Paper, TextField, Typography } from '@mui/material';
-import { getForms, saveForms } from '../utils/storage'; 
-import { FormType } from '../types/form';
-
-interface FormField {
-  id: string;
-  label: string;
-  type: string;
-  required: boolean;
-}
+import {
+  Box,
+  Button,
+  Divider,
+  Paper,
+  TextField,
+  Typography
+} from '@mui/material';
+import { Add } from '@mui/icons-material';
+import { getForms, saveForms } from '../utils/storage';
+import { FormType, FieldConfigType } from '../types/form';
+import FieldEditor from '../components/FieldEditor';
 
 const EditFormPage = () => {
-  const { id } = useParams<{ id: string }>(); 
+  const { id } = useParams<{ id: string }>();
   const [form, setForm] = useState<FormType | null>(null);
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (id) {
-      const foundForm = getForms().find(f => f.id === id);
-      setForm(foundForm || null);
-      setLoading(false);
-    }
+    const foundForm = getForms().find(f => f.id === id);
+    setForm(foundForm || null);
+    setLoading(false);
   }, [id]);
 
-  if (loading) {
-    return <Typography sx={{ p: 4 }}>Loading form...</Typography>;
-  }
+  const handleAddField = () => {
+    if (!form) return;
 
-  if (!form) {
-    return <Typography sx={{ p: 4 }}>Form not found.</Typography>;
-  }
+    const newField: FieldConfigType = {
+      id: `${Math.random()}`,
+      formId: form.id,
+      type: 'text',
+      label: 'New Field',
+      required: false,
+      minLength: undefined,
+      maxLength: undefined,
+      options: []
+    };
 
-  const handleFieldChange = (index: number, key: keyof FormField, value: string | number | boolean) => {
+    setForm({
+      ...form,
+      fields: [...form.fields, newField]
+    });
+  };
+
+  const handleFieldChange = (index: number, field: Partial<FieldConfigType>) => {
+    if (!form) return;
+
     const updatedFields = [...form.fields];
-    updatedFields[index] = { ...updatedFields[index], [key]: value };
-    setForm({ ...form, fields: updatedFields });
+    updatedFields[index] = { ...updatedFields[index], ...field };
+
+    setForm({
+      ...form,
+      fields: updatedFields
+    });
   };
 
-  const handleSave = () => {
-    const savedForms = getForms();
-    const updatedForms = savedForms.map((f) => (f.id === form.id ? form : f));
-    saveForms(updatedForms);
-    alert('Form updated successfully!');
+  const handleAddOption = (fieldIndex: number) => {
+    if (!form) return;
+
+    const updatedFields = [...form.fields];
+    const options = updatedFields[fieldIndex].options || [];
+    options.push('');
+    updatedFields[fieldIndex].options = options;
+
+    setForm({
+      ...form,
+      fields: updatedFields
+    });
   };
+
+  const handleOptionChange = (fieldIndex: number, optionIndex: number, value: string) => {
+    if (!form) return;
+
+    const updatedFields = [...form.fields];
+    const options = [...(updatedFields[fieldIndex].options || [])];
+    options[optionIndex] = value;
+    updatedFields[fieldIndex].options = options;
+
+    setForm({
+      ...form,
+      fields: updatedFields
+    });
+  };
+
+  const handleDeleteOption = (fieldIndex: number, optionIndex: number) => {
+    if (!form) return;
+
+    const updatedFields = [...form.fields];
+    const options = [...(updatedFields[fieldIndex].options || [])];
+    options.splice(optionIndex, 1);
+    updatedFields[fieldIndex].options = options;
+
+    setForm({
+      ...form,
+      fields: updatedFields
+    });
+  };
+
+  const handleDeleteField = (index: number) => {
+    if (!form) return;
+
+    if (window.confirm('Are you sure you want to delete?')) {
+      const updatedFields = form.fields.filter((_, i) => i !== index);
+      setForm({ ...form, fields: updatedFields });
+    }
+  };
+
+  const handleSaveForm = () => {
+    if (!form) return;
+
+    if (!form.title.trim() || !form.path.trim()) {
+      alert('Form title and path are required!');
+      return;
+    }
+
+    const updatedForms = getForms().map(f => (f.id === form.id ? form : f));
+    saveForms(updatedForms);
+    alert('Form saved successfully!');
+  };
+
+  if (loading) return <Typography sx={{ p: 4 }}>Loading...</Typography>;
+  if (!form) return <Typography sx={{ p: 4 }}>Form not found</Typography>;
 
   return (
-    <Box 
-    sx={{ 
-      height: '100vh',
-      width: '100vw', 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      backgroundColor: '#f5f5f5',
-      py: 100, 
-      overflowY: 'auto'  
-    }}
-  >
-    <Paper 
-      elevation={6}
-      sx={{ 
-        p: 6,
-        my:4, 
-        maxWidth: 600, 
-        width: '100%', 
-        borderRadius: 4, 
-        boxShadow: 3,
-        backgroundColor: '#ffffff'
-      }}
-    >
-      <Typography variant="h4" gutterBottom>Edit Form</Typography>
+    <Box sx={{ py: 10, px: 4, backgroundColor: '#f5f5f5', minHeight: '100vh', width:'100vw', display:'flex', alignItems:'center' }}>
+      <Paper sx={{ maxWidth: 800, mx: 'auto', p: 5 }}>
+        <Typography variant="h4" gutterBottom>Edit Form</Typography>
 
-      <TextField
-        label="Form Title"
-        value={form.title}
-        fullWidth
-        margin="normal"
-        onChange={(e) => setForm({ ...form, title: e.target.value })}
-      />
-
-      <TextField
-        label="Form Path"
-        value={form.path}
-        fullWidth
-        margin="normal"
-      
-      />
-
-      <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>Fields</Typography>
-
-      {form.fields.map((field, index) => (
-        <Box key={field.id} sx={{ mb: 3 }}>
+        <Box sx={{ mb: 4 }}>
           <TextField
-            label="Field Label"
-            value={field.label}
+            label="Form Title *"
+            value={form.title}
             fullWidth
-            margin="normal"
-            onChange={(e) => handleFieldChange(index, 'label', e.target.value)}
+            required
+            sx={{ mb: 2 }}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
           />
-
           <TextField
-            label="Field Type"
-            value={field.type}
+            label="Form Path *"
+            value={form.path}
             fullWidth
-            margin="normal"
-           
-          />
-
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={field.required}
-                onChange={(e) => handleFieldChange(index, 'required', e.target.checked)}
-              />
-            }
-            label="Required"
+            required
+            disabled
+            sx={{ mb: 2 }}
+            
           />
         </Box>
-      ))}
 
-      <Button variant="contained" onClick={handleSave}>
-        update
-      </Button>
+        <Divider sx={{ my: 4 }} />
+
+        <Typography variant="h6" gutterBottom>
+          Form Fields
+        </Typography>
+
+        {form.fields.map((field, index) => (
+          <FieldEditor
+            key={field.id}
+            field={field}
+            index={index}
+            onChange={handleFieldChange}
+            onDelete={handleDeleteField}
+            onAddOption={handleAddOption}
+            onChangeOption={handleOptionChange}
+            onDeleteOption={handleDeleteOption}
+          />
+        ))}
+
+        <Divider sx={{ my: 4 }} />
+
+        <Box sx={{ mt: 4, display: 'flex', gap: 2, justifyContent: 'space-between' }}>
+          <Button
+            variant="contained"
+            onClick={handleSaveForm}
+            disabled={!form.title.trim() || !form.path.trim()}
+          >
+            Save Form
+          </Button>
+
+          <Button
+            variant="outlined"
+            onClick={handleAddField}
+            color="secondary"
+            startIcon={<Add />}
+          >
+            Add Field
+          </Button>
+        </Box>
       </Paper>
     </Box>
   );
 };
 
-export default  EditFormPage;
+export default EditFormPage;

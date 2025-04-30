@@ -22,6 +22,24 @@ import { FormType } from '../types/form';
         const forms = getForms();
         const form = forms.find(f => f.path === path);
         setFormData(form || null);
+        if (form) {
+          const initialValues: { [key: string]: string | boolean | string[] } = {};
+          form.fields.forEach(field => {
+            switch (field.type) {
+              case 'checkbox':
+              case 'chips':
+                initialValues[field.id] = [];
+                break;
+              case 'switch':
+                initialValues[field.id] = false; // Default for switch
+                break;
+              default:
+                initialValues[field.id] = '';
+            }
+          });
+          setFormValues(initialValues);
+        }
+        
       } catch (error) {
         console.error('Error loading form:', error);
       } finally {
@@ -44,18 +62,6 @@ import { FormType } from '../types/form';
   const handleChipChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setChipInput(e.target.value);
   };
-
-  // const handleAddChip = (fieldId: string) => {
-  //   if (chipInput.trim() && 
-  //   !formValues[fieldId]?.includes(chipInput)) {
-  //     const updatedChips = [...(formValues[fieldId] as string[] || []), chipInput];
-  //     setFormValues({
-  //       ...formValues,
-  //       [fieldId]: updatedChips
-  //     });
-  //     setChipInput(''); // Clear the input after adding
-  //   }
-  // };
 
 
   const handleAddChip = (fieldId: string) => {
@@ -117,10 +123,20 @@ import { FormType } from '../types/form';
     formData?.fields.forEach((field) => {
       const fieldValue = formValues[field.id];
 
-     
-      if (field.required && !fieldValue) {
-        formErrors[field.id] = 'This field is required';
+
+      if (field.required) {
+        const isBooleanField = field.type === 'switch';
+        const isEmptyArray = Array.isArray(fieldValue) && fieldValue.length === 0;
+        const isEmptyString = typeof fieldValue === 'string' && fieldValue.trim() === '';
+  
+        if (
+          (isBooleanField && typeof fieldValue !== 'boolean') ||
+          (!isBooleanField && (fieldValue === undefined || fieldValue === null || isEmptyArray || isEmptyString))
+        ) {
+          formErrors[field.id] = 'This field is required';
+        }
       }
+     
 
     
       if (field.minLength && typeof fieldValue === 'string' && fieldValue.length < field.minLength) {
@@ -143,8 +159,13 @@ import { FormType } from '../types/form';
     setErrors(formErrors);
 
     if (Object.keys(formErrors).length === 0) {
+      const submittedData: { [key: string]: string | boolean | string[] } = {};
+
+  formData?.fields.forEach((field) => {
+    submittedData[field.label] = formValues[field.id];
+  });
   
-      console.log('Form Submitted:', formValues);
+      console.log('Form Submitted:', submittedData);
       alert('Form submitted successfully!');
     }
   };
@@ -217,7 +238,8 @@ import { FormType } from '../types/form';
                       <FormControlLabel
                         control={
                           <Switch
-                            checked={Boolean(formValues[field.id])}
+                            ///checked={Boolean(formValues[field.id])}
+                            checked={formValues[field.id] === true}
                             onChange={(e) => handleSwitchChange(e, field.id)}
                             required={field.required}
                           />
@@ -357,3 +379,8 @@ import { FormType } from '../types/form';
   );
 };
 export default  PathPage;
+
+
+
+
+

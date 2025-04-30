@@ -1,8 +1,11 @@
 import { Card, CardContent, Typography, Box, Chip } from '@mui/material';
-import { FormType } from '../types/form';
+import { FieldConfigType } from '../types/form';
 
-interface FieldCardProps {
-  field: FormType;
+type FieldCardProps = {
+  field: FieldConfigType;
+  index: number;
+  onChange: (index: number, key: keyof FieldConfigType, value: string | number | boolean | string[] | undefined) => void;
+  onDelete: (index: number) => void;
 }
 const FieldCard = ({ field }: FieldCardProps) => {
   return (
@@ -22,12 +25,14 @@ const FieldCard = ({ field }: FieldCardProps) => {
           </Typography>
         )}
 
-        {(field.minLength || field.maxLength) && (
-          <Typography variant="body2" sx={{ mt: 0.5 }}>
-            {field.minLength && <span>Min: {field.minLength} </span>}
-            {field.maxLength && <span>Max: {field.maxLength}</span>}
-          </Typography>
-        )}
+       
+        {(field.minLength !== undefined || field.maxLength !== undefined) && (
+  <Typography variant="body2" sx={{ mt: 0.5 }}>
+    {field.minLength !== undefined && <span>Min Length: {field.minLength} </span>}
+    {field.maxLength !== undefined && <span>Max Length: {field.maxLength}</span>}
+  </Typography>
+)}
+
       </CardContent>
     </Card>
   );

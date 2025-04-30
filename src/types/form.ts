@@ -8,16 +8,8 @@ export type FieldType =
     id: string;
     path: string;
     title: string;
-    formId: string;
-    label: string;
-    type: FieldType;
-    required?: boolean;
-    minLength?: number;
-    maxLength?: number;
-    options?: string[];
-    extraFields?: string[];
     fields: FieldConfigType[];
-    createdAt: string;
+    
   }
   
   export type FieldConfigType = {
@@ -29,6 +21,6 @@ export type FieldType =
     minLength?: number;
     maxLength?: number;
     options?: string[];
-    extraFields?: string[];
+    
     
   }
